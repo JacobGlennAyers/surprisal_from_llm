@@ -90,6 +90,7 @@ def main(sequence, model, tokenizer, id_sequence=None, batch_size=64, no_bos=Fal
                                  **kwargs)
     # used to increment the index for the original id column if one is passed
     id_idx = 0
+    rows = []
     for batch_idx, output in enumerate(processor):
         _, batch_list = output
         for sequ_idx, sequence in enumerate(batch_list):
@@ -107,8 +108,9 @@ def main(sequence, model, tokenizer, id_sequence=None, batch_size=64, no_bos=Fal
                 data_entry = (id_unique, batch_idx, sequ_id, i, word, surprisal, entropies) if entropy \
                     else (id_unique, batch_idx, sequ_id, i, word, surprisal)
                 row = {i: j for i, j in zip(cols, data_entry, strict=True)}
-                df.loc[len(df)] = row
+                rows.append(row)
             id_idx += 1
+    df = pd.DataFrame(rows)
     return df
 
 
