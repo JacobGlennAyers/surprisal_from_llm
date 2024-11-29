@@ -4,12 +4,6 @@ from typing import Generator
 from tqdm import tqdm
 from collections.abc import Iterable
 
-
-# create a function here that allows you to get word level indeces for a sequence agnostic
-# on what type of tokenizer is being used
-
-
-
 def error_handler(word_idx, tensor, tokenizer):
     for idx in word_idx:
         if not idx in tensor:
@@ -132,7 +126,6 @@ def encode_sequence(sequence: str, tokenizer, split_pattern: str or [str] = None
     :param return_tensors:
     :return:
     """
-    tokens_expanded = False
     # some tokenizers do not have a built-in pad_id, in those cases we substitute. The token will be ignored
     # since we will set the attention mask to 0
     if tokenizer.pad_token:
@@ -141,8 +134,6 @@ def encode_sequence(sequence: str, tokenizer, split_pattern: str or [str] = None
         pad_id = 0
     if tokenizer.bos_token:
         if tokenizer.bos_token_id == tokenizer.eos_token_id:
-            #print("Warning: this model shares the same index for bos_token and eos_token. Consider running"
-            #      "with the --no_bos flag enabled if results seem odd.")
             pass
         elif no_bos:
             print("Warning: this model has a bos_token but you are running it with the no_bos flag. "
@@ -408,7 +399,7 @@ def batch_process(sequence: list, model, tokenizer, padding=True, device=None, w
 
 def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[any], model, tokenizer, padding=True,
                device=None,
-               pre_tokenized=False,
+               pre_tokenized=False, no_bos=False, entropy=False,
                sum=True, batch_size=64, **kwargs) -> Generator[torch.tensor, dict, Iterable[any]]:
     """
     This function is used to directly pass an iterable object and get surprisal values in return. Intended for import
@@ -437,9 +428,9 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[
                   "words, then please enable the 'pre_tokenized=True' flag.")
             for idx, i in enumerate(tqdm(sequence)):
                 yield return_surprisals(i, model, tokenizer, device=device,
-                                        padding=padding,
+                                        padding=padding, no_bos=no_bos, entropy=entropy,
                                         sum=sum, **kwargs), indices[idx] if indices else return_surprisals(
-                    i, model, tokenizer, device=device,
+                    i, model, tokenizer, device=device, no_bos=no_bos, entropy=entropy,
                     padding=padding,
                     sum=sum, **kwargs)
         if pre_tokenized:
@@ -449,34 +440,35 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[
                 if end < len(sequence):
                     yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
                                             padding=padding,
-                                            sum=sum,
+                                            sum=sum, no_bos=no_bos, entropy=entropy,
                                             pre_tokenized=pre_tokenized,
                                             **kwargs), indices[
                                                        start:start + batch_size] if indices else return_surprisals(
-                        sequence[start:start + batch_size], model, tokenizer,
+                        sequence[start:start + batch_size], model, tokenizer, no_bos=no_bos, entropy=entropy,
                         device=device, padding=padding, sum=sum, pre_tokenized=pre_tokenized, **kwargs)
                 else:
                     yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
-                                            sum=sum, pre_tokenized=pre_tokenized,
+                                            sum=sum, pre_tokenized=pre_tokenized, no_bos=no_bos, entropy=entropy,
                                             **kwargs), indices[start:] if indices else return_surprisals(
                         sequence[start:], model, tokenizer, device=device, padding=padding, pre_tokenized=pre_tokenized,
-                        sum=sum, **kwargs)
+                        sum=sum, no_bos=no_bos, entropy=entropy, **kwargs)
     else:
         for i, _ in enumerate(tqdm(range(0, len(sequence), batch_size), desc='generating surprisal values')):
             start = i * batch_size
             end = start + batch_size
             if end < len(sequence):
                 yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
-                                        padding=padding,
+                                        padding=padding, no_bos=no_bos, entropy=entropy,
                                         sum=sum, **kwargs), indices[
                                                             start:start + batch_size] if indices else return_surprisals(
-                    sequence[start:start + batch_size], model, tokenizer,
+                    sequence[start:start + batch_size], model, tokenizer, no_bos=no_bos, entropy=entropy,
                     device=device, padding=padding, sum=sum, **kwargs)
             else:
                 yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
-                                        sum=sum, **kwargs), indices[start:] if indices else return_surprisals(
+                                        sum=sum, no_bos=no_bos, entropy=entropy,
+                                        **kwargs), indices[start:] if indices else return_surprisals(
                     sequence[start:], model, tokenizer, device=device, padding=padding,
-                    sum=sum, **kwargs)
+                    sum=sum, no_bos=no_bos, entropy=entropy, **kwargs)
 
 
 def surprisals_single_sequence(sequence: list or str, model, tokenizer, keep_space=False, device=None, wordmode=True,
@@ -506,7 +498,6 @@ def surprisals_single_sequence(sequence: list or str, model, tokenizer, keep_spa
     # now we have a surprisal value for every token in the input, but we do not know how those tokens
     # correspond to the words in the sequence, we use the mask_tuple, to grab the correct values from their
     # indices
-    #print(encodes)
     if wordmode:
         # we need to make sure we skip the first word if we dont use bos token
         # so we dont have a falsified representation
@@ -527,37 +518,3 @@ def surprisals_single_sequence(sequence: list or str, model, tokenizer, keep_spa
 
     return surp.to('cpu'), encodes['words']
 
-#from transformers import GPT2Tokenizer, GPT2LMHeadModel
-
-#tokenizer2 = GPT2Tokenizer.from_pretrained('gpt2')
-#model2 = GPT2LMHeadModel.from_pretrained('gpt2')
-#model2.save_pretrained("./gpt2")
-#tokenizer2.save_pretrained("./gpt2")
-#test_inputs = ["I love my dog. He's the best dude", "J'aime mon chien", "This is a test string that is purposefully ex"
-#                                                       "tra long to thest the batching"]
-
-#test_batch = encode_batch(test_inputs, tokenizer2, padding=True, keep_space=True)
-
-#surp = get_surprisal(test_batch, model2)
-#print(surp.shape)
-
-#surp2 = return_surprisals(test_inputs, model2, tokenizer2, padding=True, keep_space=True, device='mps', sum=True)
-#print(surp2)
-#print(surp2[0].shape)
-#input_ids = test_batch['labels']
-#jaime = test_batch['words'][2]
-#print(jaime)
-#print(test_batch['labels'][2])
-#print(get_word_ids(test_inputs[0], tokenizer=tokenizer2, split_pattern=["'", " "]))
-
-#test_input = [["Some", "pre-", "tokenized", "input"] for i in range(5)]
-#large_batch = [["Crazy long imputs and such" for _ in range(5)] for _ in range(50)]
-#idc = range(5 * 50)
-#id2 = [[i for i in range(4)] for i in range(5)]
-#out = surprisals(test_input, id2, model2, tokenizer2, pre_tokenized=True, keep_space=True)
-
-#test = out.__next__()
-#surp, idx = test
-#print(idx)
-#print(surp)
-#print(surprisals_single_sequence(test_input[0], model2, tokenizer2, pre_tokenized=True, keep_space=True))
