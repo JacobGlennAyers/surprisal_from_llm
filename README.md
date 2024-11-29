@@ -66,4 +66,6 @@ python main.py --file [FILE] --model [MODEL] --feature_column [INPUT COLUMN NAME
 - `--entropy`: Tells module to calculate entropy in addition to surprisal. Whereby entropy is defined as Shannon-Entropy:
 
 $`H(X) :=-\sum\limits_{x\in{\mathcal{X}}} p(x)\log p(x)`$
+
+
 - `--logbase`: Specifies the logbase, options are 2, e, or 10. Default = 2
