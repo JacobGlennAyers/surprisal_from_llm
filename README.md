@@ -65,5 +65,5 @@ python main.py --file [FILE] --model [MODEL] --feature_column [INPUT COLUMN NAME
 - `--no_bos`: Tells model not to include a bos-token. Note that this means there will be no surprisal values for the first token in the sequence. This setting is useful for models that have no bos_token. Note that if this is selected, the value for the first word is returned as 0.0.
 - `--entropy`: Tells module to calculate entropy in addition to surprisal. Whereby entropy is defined as Shannon-Entropy:
 
-$` H(X) :=-\sum\limits_{x\in{\mathcal{X}}} p(x)\log p(x) `$
+$`H(X) :=-\sum\limits_{x\in{\mathcal{X}}} p(x)\log p(x)`$
 - `--logbase`: Specifies the logbase, options are 2, e, or 10. Default = 2
