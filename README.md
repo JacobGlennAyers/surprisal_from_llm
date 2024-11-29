@@ -3,7 +3,7 @@ A library for extracting surprisal values from transformers at scale.
 
 This is currently under development. Certain features may be unstable.
 
-Minimal requirements can be found in `requirments.txt` and can be installed via pip: `pip install -r requirements.txt`. Python 3.10 is recommended.
+Minimal requirements can be found in `requirements.txt` and can be installed via pip: `pip install -r requirements.txt`. Python 3.10 is recommended.
 
 ## Usage
 Specify an input .csv file with a column of sequences for which you want to generate surprisal values, see 'test.csv' for an example. You also need to specify a name for a huggingface transformer of your choice. Call `python main.py -h` for details on command line args.
