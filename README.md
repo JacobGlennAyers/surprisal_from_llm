@@ -1,4 +1,4 @@
-# surprisal_lib
+# surprisal_from_llm
 A library for extracting surprisal values from transformers at scale.
 
 This is currently under development. Certain features may be unstable.
