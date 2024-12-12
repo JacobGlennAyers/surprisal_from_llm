@@ -399,7 +399,7 @@ def batch_process(sequence: list, model, tokenizer, padding=True, device=None, w
 
 def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[any], model, tokenizer, padding=True,
                device=None,
-               pre_tokenized=False, no_bos=False, entropy=False,
+               pre_tokenized=False, no_bos=False, entropy=False, logbase='2',
                sum=True, batch_size=64, **kwargs) -> Generator[torch.tensor, dict, Iterable[any]]:
     """
     This function is used to directly pass an iterable object and get surprisal values in return. Intended for import
@@ -428,10 +428,10 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[
                   "words, then please enable the 'pre_tokenized=True' flag.")
             for idx, i in enumerate(tqdm(sequence)):
                 yield return_surprisals(i, model, tokenizer, device=device,
-                                        padding=padding, no_bos=no_bos, entropy=entropy,
+                                        padding=padding, no_bos=no_bos, entropy=entropy, logbase='2',
                                         sum=sum, **kwargs), indices[idx] if indices else return_surprisals(
-                    i, model, tokenizer, device=device, no_bos=no_bos, entropy=entropy,
-                    padding=padding,
+                    i, model, tokenizer, device=device,
+                    padding=padding, no_bos=no_bos, entropy=entropy, logbase='2',
                     sum=sum, **kwargs)
         if pre_tokenized:
             for i, _ in enumerate(tqdm(range(0, len(sequence), batch_size), desc='generating surprisal values')):
@@ -440,35 +440,38 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], indices: Iterable[
                 if end < len(sequence):
                     yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
                                             padding=padding,
-                                            sum=sum, no_bos=no_bos, entropy=entropy,
+                                            sum=sum, no_bos=no_bos, entropy=entropy, logbase='2',
                                             pre_tokenized=pre_tokenized,
                                             **kwargs), indices[
                                                        start:start + batch_size] if indices else return_surprisals(
-                        sequence[start:start + batch_size], model, tokenizer, no_bos=no_bos, entropy=entropy,
-                        device=device, padding=padding, sum=sum, pre_tokenized=pre_tokenized, **kwargs)
+                        sequence[start:start + batch_size], model, tokenizer,
+                        device=device, padding=padding, sum=sum, pre_tokenized=pre_tokenized,
+                        no_bos=no_bos, entropy=entropy, logbase='2', **kwargs)
                 else:
                     yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
                                             sum=sum, pre_tokenized=pre_tokenized, no_bos=no_bos, entropy=entropy,
+                                            logbase='2',
                                             **kwargs), indices[start:] if indices else return_surprisals(
                         sequence[start:], model, tokenizer, device=device, padding=padding, pre_tokenized=pre_tokenized,
-                        sum=sum, no_bos=no_bos, entropy=entropy, **kwargs)
+                        sum=sum, no_bos=no_bos, entropy=entropy, logbase='2', **kwargs)
     else:
         for i, _ in enumerate(tqdm(range(0, len(sequence), batch_size), desc='generating surprisal values')):
             start = i * batch_size
             end = start + batch_size
             if end < len(sequence):
                 yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
-                                        padding=padding, no_bos=no_bos, entropy=entropy,
+                                        padding=padding, no_bos=no_bos, entropy=entropy, logbase='2',
                                         sum=sum, **kwargs), indices[
                                                             start:start + batch_size] if indices else return_surprisals(
-                    sequence[start:start + batch_size], model, tokenizer, no_bos=no_bos, entropy=entropy,
-                    device=device, padding=padding, sum=sum, **kwargs)
+                    sequence[start:start + batch_size], model, tokenizer,
+                    device=device, padding=padding, no_bos=no_bos, entropy=entropy, logbase='2', sum=sum, **kwargs)
             else:
                 yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
-                                        sum=sum, no_bos=no_bos, entropy=entropy,
-                                        **kwargs), indices[start:] if indices else return_surprisals(
+                                        no_bos=no_bos, entropy=entropy, logbase='2',
+                                        sum=sum, **kwargs), indices[start:] if indices else return_surprisals(
                     sequence[start:], model, tokenizer, device=device, padding=padding,
-                    sum=sum, no_bos=no_bos, entropy=entropy, **kwargs)
+                    no_bos=no_bos, entropy=entropy, logbase='2',
+                    sum=sum, **kwargs)
 
 
 def surprisals_single_sequence(sequence: list or str, model, tokenizer, keep_space=False, device=None, wordmode=True,
