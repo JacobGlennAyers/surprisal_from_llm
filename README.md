@@ -69,3 +69,23 @@ $`{H(X) :=-\sum\limits_{x\in{\mathcal{X}}} p(x)\log p(x)}`$
 
 
 - `--logbase`: Specifies the logbase, options are 2, e, or 10. Default = 2
+
+
+## Usage for Token Classification based Surprisal
+Token classification surprisal can be extracted by calling the `main_classification.py` file. This shares all parameters with `main.py` except for an additional `--tag_column` param that needs to be pointed at the column in your file containing your classification tags.
+This is agnostic to the type of classification task performed. The important thing to consider is that the ground truth tags in your file have to be tags that are in the models list of tags. If you do not know what tags your model uses, you can call `model.config.label2id` in a notebook or ipython environment to get a list of permissible tags.
+Please note that currently your tags need to be separated by whitespace and you need to ensure that you have exactly as many tags as you have words based on your selected tokenization strategy (default: whitespace).
+
+```
+python main_classification.py --file [input_file] --model [model_name]
+```
+
+### Example Usage for Token Classification
+
+```
+python main_classifier.py --file classification_test.txt --model "QCRI/bert-base-multilingual-cased-pos-english"
+```
+
+## Additional Params for Classification
+
+- `--tag_column`: name of the column where your classification tags can be found. Default = 'tags'
