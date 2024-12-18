@@ -42,6 +42,9 @@ def start_parser() -> argparse.ArgumentParser:
                         help="The name of your id_column, if not specified the module will generate its own ids."
                              "If an id_column is specified the module will use this column to generate sequence ids",
                         required=False, default=None)
+    parser.add_argument("--sep",
+                        help="The separation character for your .csv file",
+                        required=False, default=',')
     parser.add_argument("--device",
                         help="Device on which to run your model. Default: cpu",
                         required=False, default='cpu')
@@ -124,7 +127,7 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
 
     data_in, tags_in, ids = ut.read_in_csv_classifier(arguments.file, arguments.feature_column, arguments.tag_column,
-    arguments.id_column)
+    arguments.id_column, sep=arguments.sep)
     if arguments.model_class:
         model_class = getattr(transformers, arguments.model_class)
         model = model_class.from_pretrained(arguments.model, token=arguments.hf_token).to(arguments.device)
