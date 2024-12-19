@@ -6,6 +6,7 @@ from typing import Generator
 from tqdm import tqdm
 from collections.abc import Iterable
 
+
 def error_handler(word_idx, tensor, tokenizer):
     for idx in word_idx:
         if not idx in tensor:
@@ -131,6 +132,7 @@ def get_tag_ids(sequence_ids: dict, tag_sequence: str or iter, label2id: dict) -
         tag_list.extend([label2id[tag_sequence[idx]] for i in sequence_ids[idx][1]])
     return tag_sequence, tag_list
 
+
 def get_tag_ids_batch(sequence_ids: [dict], tag_sequences: iter, label2id: dict) -> (dict, int):
     """'
     splits a string based on a pattern and returns a dictionary where the split token index is the key,
@@ -139,10 +141,11 @@ def get_tag_ids_batch(sequence_ids: [dict], tag_sequences: iter, label2id: dict)
     batch_list = []
     tag_sequence_batch = []
     for index, sequence in enumerate(sequence_ids):
-        tag_sequence, tags = get_tag_ids(sequence,tag_sequences[index],label2id)
+        tag_sequence, tags = get_tag_ids(sequence, tag_sequences[index], label2id)
         batch_list.append(tags)
         tag_sequence_batch.append(tag_sequence)
     return tag_sequence_batch, batch_list
+
 
 def encode_sequence(sequence: str, tokenizer, tag_sequence: str or iter, label2id: dict,
                     split_pattern: str or [str] = None, return_tensors='pt',
@@ -218,7 +221,8 @@ def encode_sequence(sequence: str, tokenizer, tag_sequence: str or iter, label2i
             'no_bos': no_bos}
 
 
-def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer, split_pattern: str or [str] = None, return_tensors='pt',
+def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer, split_pattern: str or [str] = None,
+                 return_tensors='pt',
                  keep_space: bool = False, no_bos=False, padding=True, device='cpu', pre_tokenized=False) -> dict:
     """
     Returns encodings for each token (based on split pattern) in context of the entire sequence, recommended
@@ -243,7 +247,6 @@ def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer
         else:
             tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
-
     sequence_ids = get_word_ids_batch(sequence, tokenizer, split_pattern, keep_space=keep_space,
                                       pre_tokenized=pre_tokenized)
 
@@ -259,7 +262,7 @@ def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer
     if encode_sequence.input_ids[0, 0] in tokenizer.all_special_ids:
         bos_present = True
     else:
-        bos_present= False
+        bos_present = False
 
     for index, sequ in enumerate(sequence_ids):
         # keeps track by how much we've incremented the mask indices
@@ -267,7 +270,7 @@ def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer
         sequ_ids = sequ
         mask_counter = 0
         if bos_present:
-            mask_counter +=1
+            mask_counter += 1
             tag_batch[index] = [0] + tag_batch[index]
         if eos_present:
             tag_batch[index].append(0)
@@ -281,7 +284,8 @@ def encode_batch(sequence: [str], tag_sequences: iter, label2id: dict, tokenizer
             mask_counter += end_idx - begin_idx - 1
             # we save this index_mask so we can use it later,
             # we create a new tuple that now saves the word, the word index from the tokenizer, and the mask
-            sequence_ids[index][idx] = (sequence_ids[index][idx][0], sequence_ids[index][idx][1], tags[index][idx], mask_tuple)
+            sequence_ids[index][idx] = (
+            sequence_ids[index][idx][0], sequence_ids[index][idx][1], tags[index][idx], mask_tuple)
     return {'labels': torch.tensor(tag_batch).to(device),
             "input_ids": encode_sequence.input_ids[:, :].to(device),
             "words": sequence_ids,
@@ -411,8 +415,8 @@ def batch_process(sequence: list or str, tag_sequence: iter or str, model, token
                                     logbase=logbase, **kwargs)
 
 
-def surprisals(sequence: Iterable[str] or Iterable[Iterable], tag_sequence: iter or str, indices: Iterable[any],
-               model, tokenizer, padding=True,
+def surprisals(sequence: Iterable[str] or Iterable[Iterable], tag_sequence: iter or str,
+               model, tokenizer, indices: Iterable[any] = None, padding=True,
                device=None,
                pre_tokenized=False, no_bos=False, entropy=False, logbase='2',
                sum=True, batch_size=64, **kwargs) -> Generator[torch.tensor, dict, Iterable[any]]:
@@ -492,7 +496,7 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], tag_sequence: iter
 
 
 def surprisals_single_sequence(sequence: list or str, tag_sequence: str or iter, model, tokenizer, keep_space=False,
-                               device=None, wordmode=True, logbase = '2',
+                               device=None, wordmode=True, logbase='2',
                                sum=True, pre_tokenized: bool = False, no_bos=False, entropy=False, **kwargs):
     if len(sequence) == 1 and no_bos:
         return 0.0, {0: (sequence[0], None, None)}
