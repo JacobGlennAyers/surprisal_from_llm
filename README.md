@@ -86,7 +86,7 @@ python main_classification.py --file [input_file] --model [model_name]
 ### Example Usage for Token Classification
 
 ```
-python main_classifier.py --file classification_test.txt --model "QCRI/bert-base-multilingual-cased-pos-english"
+python main_classification.py --file classification_test.txt --model "QCRI/bert-base-multilingual-cased-pos-english"
 ```
 
 ## Additional Params for Classification
