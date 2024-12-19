@@ -14,7 +14,7 @@ def error_handler(word_idx, tensor, tokenizer):
             raise Exception("An index created by the get_word_ids() cannot be found in the tokenized sequence."
                             " This usually happens with tokenizers that handle space before tokens differently from"
                             " no space before a token. Try passing keep_space=True and make sure sequence initial"
-                            " tokens in your data are not preceded by whitespace."
+                            " tokens in your data are not preceded by whitespace, or use split_pattern=tokenizer."
                             "Alternatively, you may attempt to initialize your tokenizer with"
                             " add_prefix_space= True. This may change the outcome of your loss calculations slightly.",
                             f"word indexes: {word_idx}\n",
@@ -400,7 +400,7 @@ def batch_process(sequence: list, model, tokenizer, padding=True, device=None, w
 def surprisals(sequence: Iterable[str] or Iterable[Iterable], model, tokenizer, indices: Iterable[any] = None,
                padding=True,
                device=None,
-               pre_tokenized=False, no_bos=False, entropy=False, logbase='2',
+               pre_tokenized=False, no_bos=False, entropy=False, logbase='2', wordmode = True,
                sum=True, batch_size=64, **kwargs) -> Generator[torch.tensor, dict, Iterable[any]]:
     """
     This function is used to directly pass an iterable object and get surprisal values in return. Intended for import
@@ -428,10 +428,10 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], model, tokenizer, 
                   "function will interpret this a s pre_batched sequence. If your input is an Iterable of pre-tokenized"
                   "words, then please enable the 'pre_tokenized=True' flag.")
             for idx, i in enumerate(tqdm(sequence)):
-                yield return_surprisals(i, model, tokenizer, device=device,
+                yield return_surprisals(i, model, tokenizer, device=device, wordmode=wordmode,
                                         padding=padding, no_bos=no_bos, entropy=entropy, logbase=logbase,
                                         sum=sum, **kwargs), indices[idx] if indices else return_surprisals(
-                    i, model, tokenizer, device=device,
+                    i, model, tokenizer, device=device, wordmode=wordmode,
                     padding=padding, no_bos=no_bos, entropy=entropy, logbase=logbase,
                     sum=sum, **kwargs)
         if pre_tokenized:
@@ -440,21 +440,21 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], model, tokenizer, 
                 end = start + batch_size
                 if end < len(sequence):
                     yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
-                                            padding=padding,
+                                            padding=padding, wordmode=wordmode,
                                             sum=sum, no_bos=no_bos, entropy=entropy, logbase=logbase,
                                             pre_tokenized=pre_tokenized,
                                             **kwargs), indices[
                                                        start:start + batch_size] if indices else return_surprisals(
-                        sequence[start:start + batch_size], model, tokenizer,
+                        sequence[start:start + batch_size], model, tokenizer, wordmode=wordmode,
                         device=device, padding=padding, sum=sum, pre_tokenized=pre_tokenized,
                         no_bos=no_bos, entropy=entropy, logbase=logbase, **kwargs)
                 else:
                     yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
                                             sum=sum, pre_tokenized=pre_tokenized, no_bos=no_bos, entropy=entropy,
-                                            logbase=logbase,
+                                            logbase=logbase, wordmode=wordmode,
                                             **kwargs), indices[start:] if indices else return_surprisals(
                         sequence[start:], model, tokenizer, device=device, padding=padding, pre_tokenized=pre_tokenized,
-                        sum=sum, no_bos=no_bos, entropy=entropy, logbase=logbase, **kwargs)
+                        sum=sum, no_bos=no_bos, entropy=entropy, logbase=logbase, wordmode=wordmode, **kwargs)
     else:
         for i, _ in enumerate(tqdm(range(0, len(sequence), batch_size), desc='generating surprisal values')):
             start = i * batch_size
@@ -462,16 +462,16 @@ def surprisals(sequence: Iterable[str] or Iterable[Iterable], model, tokenizer, 
             if end < len(sequence):
                 yield return_surprisals(sequence[start:start + batch_size], model, tokenizer, device=device,
                                         padding=padding, no_bos=no_bos, entropy=entropy, logbase=logbase,
-                                        sum=sum, **kwargs), indices[
+                                        sum=sum, wordmode=wordmode, **kwargs), indices[
                                                             start:start + batch_size] if indices else return_surprisals(
-                    sequence[start:start + batch_size], model, tokenizer,
+                    sequence[start:start + batch_size], model, tokenizer, wordmode=wordmode,
                     device=device, padding=padding, no_bos=no_bos, entropy=entropy, logbase=logbase, sum=sum, **kwargs)
             else:
                 yield return_surprisals(sequence[start:], model, tokenizer, device=device, padding=padding,
-                                        no_bos=no_bos, entropy=entropy, logbase=logbase,
+                                        no_bos=no_bos, entropy=entropy, logbase=logbase, wordmode=wordmode,
                                         sum=sum, **kwargs), indices[start:] if indices else return_surprisals(
                     sequence[start:], model, tokenizer, device=device, padding=padding,
-                    no_bos=no_bos, entropy=entropy, logbase=logbase,
+                    no_bos=no_bos, entropy=entropy, logbase=logbase, wordmode=wordmode,
                     sum=sum, **kwargs)
 
 
