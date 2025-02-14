@@ -64,9 +64,9 @@ python main.py --file [FILE] --model [MODEL] --feature_column [INPUT COLUMN NAME
 - `--tokenizer_class`: Allows you to specify a tokenizer class. By default this library uses the AutoTokenizer class. Some models may not work with this class. In this case you will get a 'Unrecognized configuration class' error. 
 - `--no_bos`: Tells model not to include a bos-token. Note that this means there will be no surprisal values for the first token in the sequence. This setting is useful for models that have no bos_token. Note that if this is selected, the value for the first word is returned as 0.0.
 - `--sep`: Allows to specify a separation character for your input file.
-- `--entropy`: Tells module to calculate conditioned entropy in addition to surprisal. Whereby entropy is defined as Shannon-Entropy:
+- `--entropy`: Tells module to calculate conditioned entropy (also referred to as equivocation) in addition to surprisal. Whereby entropy is defined as Shannon-Entropy:
 
-$`{H(X) :=-\sum\limits_{x\in{\mathcal{X}}} p(x)\log p(x)}`$
+$`{H(Y | X = x) :=-\sum\limits_{y\in{\mathcal{Y}}} p( Y = y | X = x )\log p( Y = y | X = x )}`$
 
 
 - `--logbase`: Specifies the logbase, options are 2, e, or 10. Default = 2
